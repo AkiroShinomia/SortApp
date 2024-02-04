@@ -3,7 +3,7 @@ import time
 
 
 class Node:
-    #Класс узла бинарного дерева. 
+    """Класс узла бинарного дерева."""
     def __init__(self, value):
         self.value = value
         self.left = None
@@ -11,19 +11,19 @@ class Node:
 
 
 class BinaryTree:
-    #Класс бинарного дерева. 
+    """Класс бинарного дерева."""
     def __init__(self):
         self.root = None
 
     def insert(self, value):
-        #Метод для вставки значения в бинарное дерево.
+        """Метод для вставки значения в бинарное дерево."""
         if self.root is None:
             self.root = Node(value)
         else:
             self._insert_recursively(self.root, value)
 
     def _insert_recursively(self, node, value):
-        #Рекурсивный метод для вставки значения в бинарное дерево. 
+        """Рекурсивный метод для вставки значения в бинарное дерево."""
         if value < node.value:
             if node.left is None:
                 node.left = Node(value)
@@ -36,13 +36,13 @@ class BinaryTree:
                 self._insert_recursively(node.right, value)
 
     def in_order_traversal(self):
-        #Метод для обхода бинарного дерева в порядке сортировки. 
+        """Метод для обхода бинарного дерева в порядке сортировки."""
         elements = []
         self._in_order_traversal_recursively(self.root, elements)
         return elements
 
     def _in_order_traversal_recursively(self, node, elements):
-        #Рекурсивный метод для обхода бинарного дерева в порядке сортировки. 
+        """Рекурсивный метод для обхода бинарного дерева в порядке сортировки."""
         if node:
             self._in_order_traversal_recursively(node.left, elements)
             elements.append(node.value)
@@ -50,7 +50,7 @@ class BinaryTree:
 
 
 class SortingApp:
-    #Класс графического приложения для сортировки чисел. 
+    """Класс графического приложения для сортировки чисел."""
     def __init__(self, root):
         self.root = root
         self.root.title("Sorting App")
@@ -62,7 +62,8 @@ class SortingApp:
         self.input_entry = tk.Entry(root)
         self.input_entry.pack()
 
-        self.sort_options = ["Сортировка по возрастанию", "Сортировка по убыванию", "Сортировка бинарным деревом"]
+        self.sort_options = ["Сортировка по возрастанию", "Сортировка по убыванию", 
+                             "Сортировка бинарным деревом", "Сортировка пузырьком", "Поразрядная сортировка"]
         self.sort_var = tk.StringVar(root)
         self.sort_var.set(self.sort_options[0])
 
@@ -92,11 +93,12 @@ class SortingApp:
             start_time = time.time()
 
             # Выполняем сортировку в зависимости от выбора пользователя
-            if self.sort_var.get() == self.sort_options[0]:
+            method = self.sort_var.get()
+            if method == self.sort_options[0]:
                 numbers.sort()
-            elif self.sort_var.get() == self.sort_options[1]:
+            elif method == self.sort_options[1]:
                 numbers.sort(reverse=True)
-            else:
+            elif method == self.sort_options[2]:
                 # Создаем бинарное дерево и вставляем элементы
                 tree = BinaryTree()
                 for num in numbers:
@@ -104,6 +106,20 @@ class SortingApp:
                 
                 # Получаем отсортированный список из бинарного дерева
                 numbers = tree.in_order_traversal()
+            elif method == self.sort_options[3]:
+                # Сортировка пузырьком
+                n = len(numbers)
+                for i in range(n - 1):
+                    for j in range(0, n - i - 1):
+                        if numbers[j] > numbers[j + 1]:
+                            numbers[j], numbers[j + 1] = numbers[j + 1], numbers[j]
+            elif method == self.sort_options[4]:
+                # Поразрядная сортировка
+                max_num = int(max(numbers))
+                exp = 1
+                while max_num // exp > 0:
+                    counting_sort(numbers, exp)
+                    exp *= 10
 
             # Замеряем время окончания сортировки и вычисляем время выполнения
             end_time = time.time()
@@ -111,7 +127,7 @@ class SortingApp:
 
             # Очищаем текстовое поле вывода и выводим результат сортировки и время выполнения
             self.output_text.delete(1.0, tk.END)
-            self.output_text.insert(tk.END, f"Отсортированная последовательность: {numbers}\n")
+            self.output_text.insert(tk.END, f"Отсортированная последовательность (метод: {method}): {numbers}\n")
             self.output_text.insert(tk.END, f"Время выполнения сортировки: {duration:.6f} секунд")
 
         except ValueError:
@@ -122,7 +138,32 @@ class SortingApp:
             self.output_text.insert(tk.END, f"Ошибка: {str(e)}")
 
 
+def counting_sort(arr, exp):
+    """Вспомогательная функция для поразрядной сортировки."""
+    n = len(arr)
+    output = [0] * n
+    count = [0] * 10
+
+    for i in range(n):
+        index = arr[i] // exp
+        count[index % 10] += 1
+
+    for i in range(1, 10):
+        count[i] += count[i - 1]
+
+    i = n - 1
+    while i >= 0:
+        index = arr[i] // exp
+        output[count[index % 10] - 1] = arr[i]
+        count[index % 10] -= 1
+        i -= 1
+
+    for i in range(n):
+        arr[i] = output[i]
+
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = SortingApp(root)
     root.mainloop()
+
